@@ -28,9 +28,10 @@ int main(void)
 {
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	GPIOA->MODER |= GPIO_MODER_MODER5_0;
-	GPIOA->BSRR = (1<<5); // set
+/*	GPIOA->BSRR = (1<<5); // set
 	GPIOA->BRR = (1<<5); // reset
 	GPIOA->ODR ^= (1<<5); // toggle
+*/
     /* Loop forever */
 /*
 	for(;;)
@@ -48,7 +49,7 @@ int main(void)
 	for(;;)
 	{
 		uint32_t morse32 = 0b10101001110111011100101010000000;
-		for (uint8_t i=0;i<32;i++)
+		for (uint8_t i = 0; i < 32; i++)
 		{
 			if (morse32 & (1<<31))
 			{
