@@ -19,23 +19,27 @@
 
 #include <stdint.h>
 #include <stm32f0xx.h>
+
 #define LED_TIME_BLINK 300
 #define LED_TIME_SHORT 100
 #define LED_TIME_LONG 1000
 #define BUTTON_SAMPLE 40
+#define DEBOUNCE_TIME 5
+
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
 #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
-void EXTI0_1_IRQHandler(void)
+/*void EXTI0_1_IRQHandler(void)
 {
 	if (EXTI->PR & EXTI_PR_PR0) { // check line 0 has triggered the IT
 		EXTI->PR |= EXTI_PR_PR0; // clear the pending bit
 		GPIOB->ODR ^= (1<<0); // toggle
 	}
-}
+}*/
 
 volatile uint32_t Tick;
+
 void SysTick_Handler(void)
 {
 	Tick++; // perioda 1ms
@@ -44,7 +48,6 @@ void SysTick_Handler(void)
 void blikac(void)
 {
 	static uint32_t delay;
-
 	if (Tick > delay + LED_TIME_BLINK) {
 		GPIOA->ODR ^= (1<<4);
 		delay = Tick;
@@ -52,10 +55,11 @@ void blikac(void)
 }
 
 void tlacitka(void){
-	static uint32_t off_time;
-	static uint32_t delay;
 
-	if (Tick > delay + BUTTON_SAMPLE){
+	static uint32_t delay1;
+	static uint32_t delay2;
+	static uint32_t off_time;
+	if (Tick > delay1 + BUTTON_SAMPLE){
 		static uint32_t old_s2;
 		uint32_t new_s2 = GPIOC->IDR & (1<<0);
 		if (old_s2 && !new_s2) { // falling edge
@@ -63,15 +67,20 @@ void tlacitka(void){
 			GPIOB->BSRR = (1<<0);
 		}
 		old_s2 = new_s2;
+		delay1 = Tick;
+	}
 
-		static uint32_t old_s1;
-		uint32_t new_s1 = GPIOC->IDR & (1<<1);
-		if (old_s1 && !new_s1) { // falling edge
+	static uint16_t debounce = 0xFFFF;
+	if (Tick > delay2 + DEBOUNCE_TIME){
+		debounce <<= 1;
+		if (GPIOC->IDR & (1<<1)){
+			debounce |= 0x0001;
+		}
+		if (debounce == 0x7FFF){
 			off_time = Tick + LED_TIME_LONG;
 			GPIOB->BSRR = (1<<0);
 		}
-		old_s1 = new_s1;
-		delay = Tick;
+		delay2 = Tick;
 	}
 
 	if (Tick > off_time) {
@@ -88,10 +97,10 @@ int main(void)
 	GPIOC->PUPDR |= GPIO_PUPDR_PUPDR0_0; // S2 = PC0, pullup
 	GPIOC->PUPDR |= GPIO_PUPDR_PUPDR1_0; // S1 = PC1, pullup
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-	SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PC; // select PC0 for EXTI0
-	EXTI->IMR |= EXTI_IMR_MR0; // mask
-	EXTI->FTSR |= EXTI_FTSR_TR0; // trigger on falling edge
-	NVIC_EnableIRQ(EXTI0_1_IRQn); // enable EXTI0_1
+	//	SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PC; // select PC0 for EXTI0
+	//	EXTI->IMR |= EXTI_IMR_MR0; // mask
+	//	EXTI->FTSR |= EXTI_FTSR_TR0; // trigger on falling edge
+	//	NVIC_EnableIRQ(EXTI0_1_IRQn); // enable EXTI0_1
 
 	while (1){
 		blikac();
