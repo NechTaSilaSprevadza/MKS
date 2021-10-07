@@ -117,7 +117,6 @@ int main(void)
 		  	  }
 	  	  }
 	   */
-	  __HAL_TIM_GET_COUNTER(&htim1);
 	  sct_value(__HAL_TIM_GET_COUNTER(&htim1));
 	  HAL_Delay(50);
   }

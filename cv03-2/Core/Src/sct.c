@@ -4,28 +4,9 @@
  *  Created on: 7. 10. 2021
  *      Author: student
  */
-#include <stm32f0xx.h>
-#include "sct.h"
+#include <stdint.h>
 #include "main.h"
-
-void sct_init(void)
-{
-	sct_led(0);
-}
-
-void sct_led(uint32_t value)
-{
-	//	value = 0x7A5C36DE;
-	for (uint8_t x=0; x<=31; x++)
-	{
-		HAL_GPIO_WritePin(SCT_SDI_GPIO_Port, SCT_SDI_Pin, value&1);
-		HAL_GPIO_WritePin(SCT_CLK_GPIO_Port, SCT_CLK_Pin, 1);
-		HAL_GPIO_WritePin(SCT_CLK_GPIO_Port, SCT_CLK_Pin, 0);
-		value>>=1;
-	}
-	HAL_GPIO_WritePin(SCT_NLA_GPIO_Port, SCT_NLA_Pin, 1);
-	HAL_GPIO_WritePin(SCT_NLA_GPIO_Port, SCT_NLA_Pin, 0);
-}
+#include "sct.h"
 
 static const uint32_t reg_values[3][10] = {
 		{
@@ -68,6 +49,25 @@ static const uint32_t reg_values[3][10] = {
 				0b0110000000001111 << 0,
 		},
 };
+
+void sct_init(void)
+{
+	sct_led(0);
+}
+
+void sct_led(uint32_t value)
+{
+	//	value = 0x7A5C36DE;
+	for (uint8_t x=0; x<=31; x++)
+	{
+		HAL_GPIO_WritePin(SCT_SDI_GPIO_Port, SCT_SDI_Pin, value&1);
+		HAL_GPIO_WritePin(SCT_CLK_GPIO_Port, SCT_CLK_Pin, 1);
+		HAL_GPIO_WritePin(SCT_CLK_GPIO_Port, SCT_CLK_Pin, 0);
+		value>>=1;
+	}
+	HAL_GPIO_WritePin(SCT_NLA_GPIO_Port, SCT_NLA_Pin, 1);
+	HAL_GPIO_WritePin(SCT_NLA_GPIO_Port, SCT_NLA_Pin, 0);
+}
 
 void sct_value(uint16_t value)
 {
